@@ -215,6 +215,7 @@ input[type=range]{accent-color:var(--accent);width:180px;max-width:100%}
   <button role="tab" data-tab="dailydo" aria-selected="false"><span class="av"><span class="ms">queue_music</span></span><span class="tx"><b>Daily Do</b><small>41 noten</small></span></button>
   <button role="tab" data-tab="intervallen" aria-selected="false"><span class="av"><span class="ms">hearing</span></span><span class="tx"><b>Intervallen</b><small>prime tot octaaf</small></span></button>
   <button role="tab" data-tab="dictee" aria-selected="false"><span class="av"><span class="ms">edit_note</span></span><span class="tx"><b>Melodisch dictee</b><small>noten op de notenbalk</small></span></button>
+  <button role="tab" data-tab="meloritme" aria-selected="false"><span class="av"><span class="ms">music_note</span></span><span class="tx"><b>Meloritmisch dictee</b><small>noten en ritme in 4/4</small></span></button>
 </nav>
 
 <main>
@@ -228,15 +229,13 @@ input[type=range]{accent-color:var(--accent);width:180px;max-width:100%}
   </div>
   <div class="sheet">
     <div class="head"><h2>Welke noot hoor je?</h2><span class="score" id="nqScore">0 / 0</span></div>
-    <p class="lead">Je hoort eerst een gegeven noot als vertrekpunt, daarna een andere noot. Welke is het?</p>
-    <div class="callout" id="nqCallout"><span>Druk op <b>Nieuwe noot</b> om te beginnen.</span></div>
+    <p class="lead">Je hoort eerst de <b>do</b> als vertrekpunt, daarna een andere noot. Welke is het?</p>
     <div class="row">
       <button class="btn primary" id="nqNew"><span class="ms">play_arrow</span>Nieuwe noot</button>
       <button class="btn" id="nqAgain" disabled><span class="ms">replay</span>Herhaal</button>
     </div>
     <div class="keys" id="nqKeys"></div>
     <div class="feedback" id="nqFb"></div>
-    <div class="chips"><label class="chip"><input type="checkbox" id="nqDo"> Altijd vertrekken vanaf do</label></div>
   </div>
 </section>
 
@@ -245,8 +244,8 @@ input[type=range]{accent-color:var(--accent);width:180px;max-width:100%}
   <div class="sheet">
     <div class="head"><h2>Daily Do</h2><span class="meta"><span class="ms">music_note</span><span id="ddPos">41 noten</span></span></div>
     <div class="tempo">
-      <div class="tempo-top"><span class="tempo-label"><span class="ms">speed</span>Snelheid</span><span class="tempo-val"><b id="ddTempoV">100</b> bpm</span></div>
-      <input type="range" id="ddTempo" min="40" max="100" step="5" value="100" aria-label="Snelheid in bpm">
+      <div class="tempo-top"><span class="tempo-label"><span class="ms">speed</span>Snelheid</span><span class="tempo-val"><b id="ddTempoV">240</b> bpm</span></div>
+      <input type="range" id="ddTempo" min="40" max="240" step="10" value="240" aria-label="Snelheid in bpm">
       <div class="chips" id="ddPresets"></div>
     </div>
     <div class="wave" id="ddWave" role="slider" aria-label="Positie in de melodie" tabindex="0"></div>
@@ -260,7 +259,7 @@ input[type=range]{accent-color:var(--accent);width:180px;max-width:100%}
       <h3>Notenschrift · de noot die klinkt licht op</h3>
       <div id="ddStaff" class="staff"></div>
     </div>
-    <p class="note-src">Het standaardtempo is 100 bpm. Klik op een noot om ze apart te horen, of op een streepje boven de knoppen om vanaf die noot te beginnen.</p>
+    <p class="note-src">Het oorspronkelijke tempo is 240 bpm. Klik op een noot om ze apart te horen, of op een streepje boven de knoppen om vanaf die noot te beginnen.</p>
   </div>
 </section>
 
@@ -329,8 +328,45 @@ input[type=range]{accent-color:var(--accent);width:180px;max-width:100%}
         <select id="dcStart"><option value="do" selected>Altijd do</option><option value="any">Willekeurig</option></select>
       </div>
       <div class="field"><span>Snelheid</span><input type="range" id="dcSpeed" min="0.5" max="1.6" step="0.1" value="1"><span class="val" id="dcSpeedV">1,0 s</span></div>
-      <div class="chips"><label class="chip"><input type="checkbox" id="dcEcho"> Noot laten klinken bij plaatsen</label></div>
+      <div class="chips"><label class="chip"><input type="checkbox" id="dcEcho"> Noot laten klinken bij plaatsen (ook bij meloritmisch)</label></div>
       <p class="note-src">Het dictee gebruikt alleen je gekende noten en de intervallen die je aanvinkt bij Intervallen.</p>
+    </div>
+  </div>
+</section>
+<!-- MELORITMISCH -->
+<section class="panel" id="tab-meloritme" hidden>
+  <div class="sheet">
+    <div class="head"><h2>Meloritmisch dictee</h2><span class="score" id="mrScore">0 dictees</span></div>
+    <div class="callout" id="mrCallout"><span>Druk op <b>Nieuw dictee</b>. Je hoort vier tikken om af te tellen, daarna de melodie in 4/4.</span></div>
+    <div class="transcript"><h3>Jouw dictee</h3><div class="staff click" id="mrStaff"></div></div>
+    <div class="transcript" id="mrSolWrap" hidden><h3>Oplossing</h3><div class="staff" id="mrSol"></div></div>
+    <div class="row">
+      <button class="btn primary" id="mrNew"><span class="ms">play_arrow</span>Nieuw dictee</button>
+      <button class="btn" id="mrPlay" disabled><span class="ms">replay</span>Speel dictee</button>
+      <button class="btn" id="mrMine" disabled><span class="ms">hearing</span>Speel mijn antwoord</button>
+    </div>
+    <div class="durs" id="mrDurs" role="radiogroup" aria-label="Notenwaarde"></div>
+    <p class="lead" style="font-size:.875rem">Kies een notenwaarde en klik dan op de notenbalk of op een toets. De noot komt achteraan bij.</p>
+    <div class="keys" id="mrKeys"></div>
+    <div class="row">
+      <button class="btn" id="mrUndo" disabled><span class="ms">backspace</span>Wis laatste</button>
+      <button class="btn" id="mrClear" disabled><span class="ms">delete</span>Alles wissen</button>
+      <button class="btn primary" id="mrCheck" disabled><span class="ms">check</span>Controleer</button>
+    </div>
+    <div class="feedback" id="mrFb"></div>
+    <div class="settings">
+      <h3>Instellingen</h3>
+      <div class="field"><span>Gekende noten</span><div class="chips known"></div></div>
+      <div class="field"><span>Gekende ritmes</span><div class="chips" id="mrRhythms"></div></div>
+      <div class="field"><span>Aantal maten</span>
+        <select id="mrBars"><option>2</option><option>3</option><option selected>4</option></select>
+      </div>
+      <div class="field"><span>Tempo</span><input type="range" id="mrTempo" min="50" max="120" step="5" value="72"><span class="val" id="mrTempoV">72 bpm</span></div>
+      <div class="chips">
+        <label class="chip"><input type="checkbox" id="mrClick" checked> Metronoom tijdens het spelen</label>
+        <label class="chip"><input type="checkbox" id="mrEnd" checked> Eindigen op do</label>
+      </div>
+      <p class="note-src">De melodie gebruikt alleen je gekende noten en de intervallen die je aanvinkt bij Intervallen.</p>
     </div>
   </div>
 </section>
@@ -343,7 +379,7 @@ const AUDIO = {"do": "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAA
 const NOTES=[{s:'do',l:'C',semi:0,say:'do'},{s:'re',l:'D',semi:2,say:'re'},{s:'mi',l:'E',semi:4,say:'mi'},{s:'fa',l:'F',semi:5,say:'fa'},{s:'sol',l:'G',semi:7,say:'sol'},{s:'la',l:'A',semi:9,say:'la'},{s:'si',l:'B',semi:11,say:'si'},{s:"do'",l:'C',semi:12,say:'hoge do'}];
 const FILES=['do','re','mi','fa','sol','la','si','do2'];
 const INT=['prime','secunde','terts','kwart','kwint','sixt','septiem','octaaf'];
-const QUAL={0:{0:'reine'},1:{1:'kleine',2:'grote'},2:{3:'kleine',4:'grote'},3:{5:'reine',6:'overmatige'},4:{6:'verminderde',7:'reine'},5:{8:'kleine',9:'grote'},6:{10:'kleine',11:'grote'},7:{12:'reine'}};
+const QUAL={0:{0:'rein'},1:{1:'klein',2:'groot'},2:{3:'klein',4:'groot'},3:{5:'rein',6:'overmatig'},4:{6:'verminderd',7:'rein'},5:{8:'klein',9:'groot'},6:{10:'klein',11:'groot'},7:{12:'rein'}};
 const CLEF='M314 801Q300 854 291.0 906.0Q282 958 282 1012Q282 1059 288.5 1100.5Q295 1142 307 1177Q320 1217 341.0 1252.5Q362 1288 385.5 1311.0Q409 1334 427 1334Q451 1334 493 1249Q514 1206 524.0 1156.0Q534 1106 534 1049Q534 978 515.0 907.5Q496 837 459.5 775.0Q423 713 372 666L407 498Q422 500 432.0 501.0Q442 502 447 502Q508 502 556.0 467.5Q604 433 632.5 377.0Q661 321 661 254Q661 177 621.5 115.5Q582 54 503 25Q508 8 532 -117Q538 -147 541.0 -164.5Q544 -182 545.0 -195.0Q546 -208 546 -225Q546 -275 521.5 -314.5Q497 -354 455.5 -376.0Q414 -398 363 -398Q311 -398 271.0 -378.5Q231 -359 208.0 -324.5Q185 -290 185 -245Q185 -197 211.5 -165.0Q238 -133 287 -133Q329 -133 355.5 -163.5Q382 -194 382 -236Q382 -272 357.0 -299.0Q332 -326 292 -326H282Q308 -365 364 -365Q433 -365 472.0 -320.0Q511 -275 511 -205Q511 -188 507.0 -159.5Q503 -131 493 -91Q483 -51 477.5 -25.0Q472 1 470 12Q436 2 390 2Q304 2 222 52Q142 102 96.0 184.0Q50 266 50 361Q50 451 91 530Q132 609 192.5 675.0Q253 741 314 801ZM341 826Q364 838 390.0 870.5Q416 903 440.0 945.0Q464 987 479.0 1029.5Q494 1072 494 1106Q494 1142 483.0 1163.0Q472 1184 445 1184Q421 1184 398.5 1162.0Q376 1140 358.5 1103.5Q341 1067 331.0 1022.0Q321 977 321 930Q321 898 327.5 872.0Q334 846 341 826ZM398 379Q371 373 347.0 353.5Q323 334 308.5 306.5Q294 279 294 248Q294 223 307.0 196.5Q320 170 339 154Q352 142 365 136Q380 129 380 123Q380 120 370 117Q332 126 301.5 151.0Q271 176 253.5 211.5Q236 247 236 287Q236 330 253.5 370.0Q271 410 302.5 442.0Q334 474 374 490L345 641Q229 547 174.5 456.5Q120 366 120 277Q120 212 154.0 156.0Q188 100 247.0 65.5Q306 31 380 31Q400 31 420.5 35.0Q441 39 464 45ZM495 55Q593 97 593 227Q593 270 571.0 305.5Q549 341 512.0 362.0Q475 383 429 383Z';
 const MIDI2I={60:0,62:1,64:2,65:3,67:4,69:5,71:6,72:7};
 const DD=[67,64,67,64,67,69,67,64,60,64,67,64,60,62,64,65,67,69,71,72,71,69,67,65,64,62,60,62,60,64,60,65,60,67,60,69,60,71,60,72,60].map(m=>MIDI2I[m]);
@@ -384,17 +420,16 @@ async function announceFirst(i,id,prefix='De eerste noot is'){
 function litKey(i,dur){document.querySelectorAll(`.keys .key[data-i="${i}"]`).forEach(k=>{k.classList.add('lit');setTimeout(()=>k.classList.remove('lit'),dur*1000)})}
 
 /* ---------- staff drawing ---------- */
-const G=12,TOP=26,YB=TOP+4*G,LEFT=58,LEFT0=LEFT;
+const G=12,TOP=26,YB=TOP+4*G,LEFT=58;
 const yOf=p=>YB-p*G/2;
-function staffSVG({slots,sw=44,items=[],labels=true,stems=false,activeSlot=-1,between=[],extraH=0,startBar=true,endBar=true,clef=true,width=0}){
-  const LEFT=clef?LEFT0:18,SE=LEFT+slots*sw+4,W=Math.max(SE+8,width),H=YB+(labels?44:30)+extraH;
+function staffSVG({slots,sw=44,items=[],labels=true,stems=false,activeSlot=-1,between=[],extraH=0,startBar=true,endBar=true}){
+  const W=LEFT+slots*sw+12,H=YB+(labels?44:30)+extraH;
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Notenbalk" data-sw="${sw}" data-slots="${slots}">`;
   for(let k=0;k<slots;k++)s+=`<rect class="slotbg${k===activeSlot?' active':''}" x="${LEFT+k*sw}" y="${TOP-14}" width="${sw}" height="${4*G+34}" rx="4" data-slot="${k}"/>`;
-  for(let k=0;k<5;k++)s+=`<line class="sl" x1="4" x2="${SE}" y1="${TOP+k*G}" y2="${TOP+k*G}"/>`;
+  for(let k=0;k<5;k++)s+=`<line class="sl" x1="4" x2="${W-8}" y1="${TOP+k*G}" y2="${TOP+k*G}"/>`;
   if(startBar)s+=`<line class="bar" x1="4" x2="4" y1="${TOP}" y2="${YB}"/>`;
-  if(endBar==='final')s+=`<line class="bar" x1="${SE-6}" x2="${SE-6}" y1="${TOP}" y2="${YB}"/><line class="bar" x1="${SE-1.75}" x2="${SE-1.75}" y1="${TOP}" y2="${YB}" style="stroke-width:3.5"/>`;
-  else if(endBar)s+=`<line class="bar" x1="${SE}" x2="${SE}" y1="${TOP}" y2="${YB}"/>`;
-  if(clef)s+=`<path class="clef" d="${CLEF}" transform="translate(6 ${yOf(2)}) scale(${G/250} ${-G/250}) translate(0 -250)"/>`;
+  if(endBar)s+=`<line class="bar" x1="${W-8}" x2="${W-8}" y1="${TOP}" y2="${YB}"/>`;
+  s+=`<path class="clef" d="${CLEF}" transform="translate(6 ${yOf(2)}) scale(${G/250} ${-G/250}) translate(0 -250)"/>`;
   for(const it of items){
     const x=LEFT+sw*(it.slot+.5);
     if(it.placeholder){s+=`<circle class="placeholder" cx="${x}" cy="${YB+G*2.6}" r="2.2"/>`;continue}
@@ -423,7 +458,7 @@ const tabs=[...document.querySelectorAll('nav button')];
 function showTab(t){if(!document.getElementById('tab-'+t))t='noten';stopAll();
   tabs.forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
   document.querySelectorAll('.panel').forEach(p=>p.hidden=p.id!=='tab-'+t);store.set('tab',t);
-  if(t==='dailydo')drawDD(-1)}
+  if(t==='dailydo')drawDD(-1);if(t==='meloritme')drawMr()}
 tabs.forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 
 /* ---------- NOTEN ---------- */
@@ -436,33 +471,30 @@ $('playScale').onclick=async()=>{await audio();stopAll();const id=run;
   for(let i=0;i<8;i++){later(()=>{if(id!==run)return;drawScale(i);litKey(i,.6)},i*.7);note(i,i*.7,.75)}
   later(()=>drawScale(),8*.7+.3)};
 
-let nq={ref:0,target:-1,answered:true,ok:0,n:0};
+let nq={target:-1,answered:true,ok:0,n:0};
 async function nqPlay(){await audio();stopAll();const id=run;
-  $('nqFb').textContent=`Eerst ${NOTES[nq.ref].s}…`;$('nqFb').className='feedback';
-  if(!await announceFirst(nq.ref,id))return;
+  $('nqFb').textContent='Eerst do…';$('nqFb').className='feedback';
+  if(!await announceFirst(0,id,'Vertrekpunt'))return;
   note(nq.target,0,1.8);if(!nq.answered)$('nqFb').textContent='Welke noot was dat?'}
-$('nqNew').onclick=()=>{const prev=nq.target;nq.ref=$('nqDo').checked?0:rnd(8);let t,g=0;do t=rnd(8);while((t===nq.ref||t===prev)&&g++<50);nq.target=t;nq.answered=false;
-  $('nqCallout').innerHTML=`<span>Vertrekpunt:</span><span class="big">${NOTES[nq.ref].s}</span><span class="score">(${NOTES[nq.ref].l}) · daarna volgt de noot die je moet raden</span>`;
+$('nqNew').onclick=()=>{let t;do t=1+rnd(7);while(t===nq.target);nq.target=t;nq.answered=false;
   document.querySelectorAll('#nqKeys .key').forEach(k=>k.classList.remove('ok','bad'));$('nqAgain').disabled=false;nqPlay()};
 $('nqAgain').onclick=nqPlay;
-function nqIv(){const v=ivl(nq.ref,nq.target);return `${v.q?v.q+' ':''}${v.name} ${v.dir==='stijgend'?'boven':'onder'} ${NOTES[nq.ref].s}`}
-$('nqDo').checked=store.get('nqDo',false);$('nqDo').onchange=()=>store.set('nqDo',$('nqDo').checked);
 keyRow($('nqKeys'),async(i,b)=>{
   if(nq.answered||nq.target<0){playOne(i);return}
   await audio();stopAll();note(i,0,1.4);
   if(i===nq.target){nq.answered=true;nq.ok++;nq.n++;b.classList.add('ok');
-    $('nqFb').textContent=`Juist, dat was ${NOTES[i].s} (${NOTES[i].l}): een ${nqIv()}.`;$('nqFb').className='feedback ok'}
+    $('nqFb').textContent=`Juist, dat was ${NOTES[i].s} (${NOTES[i].l}). Interval vanaf do: ${INT[i]}.`;$('nqFb').className='feedback ok'}
   else{nq.n++;nq.answered=true;b.classList.add('bad');document.querySelector(`#nqKeys .key[data-i="${nq.target}"]`).classList.add('ok');
-    $('nqFb').textContent=`Niet juist: het was ${NOTES[nq.target].s} (${NOTES[nq.target].l}), een ${nqIv()}. Klik op de toetsen om te vergelijken.`;$('nqFb').className='feedback bad'}
+    $('nqFb').textContent=`Niet juist: het was ${NOTES[nq.target].s} (${NOTES[nq.target].l}), een ${INT[nq.target]} boven do. Klik op de toetsen om te vergelijken.`;$('nqFb').className='feedback bad'}
   $('nqScore').textContent=`${nq.ok} / ${nq.n}`});
 
 /* ---------- DAILY DO ---------- */
 let ddLit=-1;
 function drawDD(lit){ddLit=lit;const cw=$('ddStaff').clientWidth||700;const sw=34;
-  const per=Math.max(6,Math.min(16,Math.floor((cw-LEFT-14)/sw)));const W=LEFT+per*sw+12;const per2=Math.floor((W-12-18-4)/sw);let html='';
-  for(let r=0,start=0;start<DD.length;r++){const n=r===0?per:per2;const part=DD.slice(start,start+n);const last=start+n>=DD.length;
-    html+=staffSVG({slots:part.length,sw,stems:true,labels:true,clef:r===0,width:W,endBar:last?'final':false,
-      items:part.map((i,k)=>({slot:k,k:start+k,i,cls:'play'+(start+k===lit?' now':'')}))});start+=n}
+  const per=Math.max(6,Math.min(16,Math.floor((cw-LEFT-14)/sw)));let html='';
+  for(let r=0;r*per<DD.length;r++){const part=DD.slice(r*per,r*per+per);
+    html+=staffSVG({slots:per,sw,stems:true,labels:true,endBar:(r+1)*per>=DD.length,
+      items:part.map((i,k)=>({slot:k,k:r*per+k,i,cls:'play'+(r*per+k===lit?' now':'')}))})}
   $('ddStaff').innerHTML=html;$('ddPos').textContent=lit>=0?`noot ${lit+1} van ${DD.length}`:`${DD.length} noten`}
 $('ddStaff').addEventListener('click',e=>{const g=e.target.closest('g.n');if(g)playOne(+g.dataset.i).then(()=>{drawDD(+g.dataset.k);later(()=>drawDD(-1),1.6)})});
 function followAlong(onsets,total,offset=0,onT,onEnd){const id=run,t0=ctx.currentTime-offset;let last=-2;
@@ -492,13 +524,13 @@ $('ddWave').addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='Arr
 $('ddWave').setAttribute('aria-valuemin',1);$('ddWave').setAttribute('aria-valuemax',DD.length);
 drawWave();
 $('ddStop').onclick=()=>{stopAll();ddK=0;setProgress(-1);drawDD(-1)};
-const PRESETS=[50,60,80,100];
-$('ddPresets').innerHTML=PRESETS.map(v=>`<label class="chip"><input type="radio" name="ddPreset" value="${v}"> ${v}${v===100?' · standaard':''}</label>`).join('');
+const PRESETS=[60,90,120,180,240];
+$('ddPresets').innerHTML=PRESETS.map(v=>`<label class="chip"><input type="radio" name="ddPreset" value="${v}"> ${v}${v===240?' · origineel':''}</label>`).join('');
 function syncTempo(){const v=$('ddTempo').value;$('ddTempoV').textContent=v;document.querySelectorAll('[name=ddPreset]').forEach(r=>r.checked=r.value===v);store.set('ddTempo',v);setProgress(ddPlaying?ddCur:(ddK>0?ddK:-1))}
 function tempoChanged(){syncTempo();if(ddPlaying)ddStart(Math.max(0,ddCur))}
 $('ddTempo').oninput=syncTempo;$('ddTempo').onchange=tempoChanged;
 $('ddPresets').addEventListener('change',e=>{$('ddTempo').value=e.target.value;tempoChanged()});
-let rsz;addEventListener('resize',()=>{clearTimeout(rsz);rsz=setTimeout(()=>{if(!$('tab-dailydo').hidden)drawDD(ddLit)},150)});
+let rsz;addEventListener('resize',()=>{clearTimeout(rsz);rsz=setTimeout(()=>{if(!$('tab-dailydo').hidden)drawDD(ddLit);if(!$('tab-meloritme').hidden)drawMr()},150)});
 
 /* ---------- INTERVALLEN ---------- */
 const ivOn=store.get('ivOn',[true,true,true,true,true,true,true,true]);
@@ -599,7 +631,7 @@ $('dcCheck').onclick=()=>{dc.checked=true;let ok=0;for(let k=1;k<dc.seq.length;k
 $('dcSpeed').oninput=e=>{$('dcSpeedV').textContent=(+e.target.value).toFixed(1).replace('.',',')+' s';store.set('dcSpeed',e.target.value)};
 ['dcLen','dcStart'].forEach(id=>{$(id).value=store.get(id,$(id).value);$(id).onchange=()=>store.set(id,$(id).value)});
 $('dcSpeed').value=store.get('dcSpeed','1');$('dcSpeed').oninput({target:$('dcSpeed')});
-$('ddTempo').value=Math.min(100,+store.get('ddTempo','100'))||100;syncTempo();
+$('ddTempo').value=store.get('ddTempo','240');syncTempo();
 
 /* ---------- GEKENDE NOTEN (gedeeld) ---------- */
 const KNOWN=store.get('known',[true,true,true,true,true,true,true,true]);
@@ -624,9 +656,138 @@ function genMelody(n,{startDo=true,endDo=false,prime=false}={}){
   for(let t=0;t<300;t++){const s=walk(allowed.length?allowed:[1,2]);if(s)return s}
   return walk([0,1,2,3,4,5,6,7])}
 
+/* ---------- MELORITMISCH DICTEE ---------- */
+const DUR=[{d:8,n:'hele noot'},{d:6,n:'gepunte halve'},{d:4,n:'halve noot'},{d:3,n:'gepunte kwart'},{d:2,n:'kwartnoot'},{d:1,n:'achtste noot'}];
+const CELLS={w:{d:[8],ok:p=>p===0,n:'hele noot',w:.5},hd:{d:[6],ok:p=>p===0,n:'gepunte halve',w:.6},h:{d:[4],ok:p=>p%4===0,n:'halve noot',w:1},
+  q:{d:[2],ok:p=>p%2===0,n:'kwartnoot',w:2.2},ee:{d:[1,1],ok:p=>p%2===0,n:'twee achtsten',w:1.5},qde:{d:[3,1],ok:p=>p%2===0,n:'gepunte kwart + achtste',w:.9}};
+const RKNOWN=store.get('rknown',{w:true,hd:false,h:true,q:true,ee:true,qde:false});
+$('mrRhythms').innerHTML=Object.entries(CELLS).map(([k,c])=>`<label class="chip"><input type="checkbox" data-r="${k}" ${RKNOWN[k]?'checked':''}> ${c.n}</label>`).join('');
+$('mrRhythms').addEventListener('change',e=>{const k=e.target.dataset.r;RKNOWN[k]=e.target.checked;
+  if(!Object.values(RKNOWN).some(Boolean)){RKNOWN.q=true;$('mrRhythms').querySelector('[data-r=q]').checked=true}store.set('rknown',RKNOWN)});
+const cellLen=k=>CELLS[k].d.reduce((a,b)=>a+b,0);
+function genRhythm(bars){const R=Object.keys(CELLS).filter(k=>RKNOWN[k]);const out=[];
+  for(let m=0;m<bars;m++){let p=0;const last=m===bars-1;
+    const fill=lim=>{while(p<lim){const c=R.filter(k=>CELLS[k].ok(p)&&p+cellLen(k)<=lim&&!(k==='w'&&bars>1&&m===0&&Math.random()<.6));
+      const k=c.length?wpick(c,k=>CELLS[k].w):'q';CELLS[k].d.forEach(d=>out.push(d));p+=cellLen(k)}};
+    if(last&&R.includes('w')&&(!R.includes('h')||Math.random()<.35))out.push(8);
+    else if(last&&R.includes('h')){fill(4);out.push(4)}
+    else if(last&&R.includes('hd')){out.push(6);out.push(2)}
+    else fill(8)}
+  return out}
+
+const MR_HDR=LEFT+26,wOf=d=>22+d*11;
+function glyph(x,p,d,{up=null,stemTo=null,flag=true}={}){
+  const y=yOf(p),rx=G*.66,ry=G*.47;up=up??(p<4);let s='';
+  if(p<=-2)s+=`<line class="rl" x1="${x-rx-5}" x2="${x+rx+5}" y1="${yOf(-2)}" y2="${yOf(-2)}"/>`;
+  if(d>=8)s+=`<ellipse class="ro" cx="${x}" cy="${y}" rx="${rx+.5}" ry="${ry-.6}" stroke-width="3.2"/>`;
+  else if(d>=4)s+=`<ellipse class="ro" cx="${x}" cy="${y}" rx="${rx-1}" ry="${ry-.8}" transform="rotate(-20 ${x} ${y})"/>`;
+  else s+=`<ellipse class="rh" cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" transform="rotate(-20 ${x} ${y})"/>`;
+  if(d<8){const sx=up?x+rx-.8:x-rx+.8,ey=stemTo??(up?y-3.5*G:y+3.5*G);s+=`<line class="rs" x1="${sx}" x2="${sx}" y1="${y}" y2="${ey}"/>`;
+    if(d===1&&flag)s+=up?`<path class="rh" d="M${sx} ${ey}c0 7 11 9 9 21c4-9-2-14-9-15z"/>`:`<path class="rh" d="M${sx} ${ey}c0-7 11-9 9-21c4 9-2 14-9 15z"/>`}
+  if(d===6||d===3)s+=`<circle class="rh" cx="${x+rx+6}" cy="${Math.abs(p)%2===0?y-G/2:y}" r="2.2"/>`;
+  return s}
+function rhythmHTML(notes,bars,{cursor=false,cw=700,labels=true}={}){
+  let pos=0;const meas=[...Array(bars)].map(()=>[]);
+  notes.forEach((n,k)=>{const m=Math.floor(pos/8);if(m<bars)meas[m].push({...n,k,lp:pos%8});pos+=n.d});
+  const curM=Math.floor(pos/8);
+  const nat=meas.map(ns=>{const used=ns.reduce((a,n)=>a+n.d,0);return Math.max(120,16+ns.reduce((a,n)=>a+wOf(n.d),0)+(8-used)*14)});
+  const avg=nat.reduce((a,b)=>a+b,0)/bars;
+  const perMax=Math.max(1,Math.min(bars,Math.floor((cw-MR_HDR)/Math.max(avg,150))));const per=Math.ceil(bars/Math.ceil(bars/perMax));
+  const rows=[];for(let m=0;m<bars;m+=per)rows.push([...Array(Math.min(per,bars-m))].map((_,j)=>m+j));
+  const W=Math.max(...rows.map(r=>MR_HDR+r.reduce((a,m)=>a+nat[m],0)+10)),H=YB+(labels?46:30);
+  let html='';
+  rows.forEach((r,ri)=>{
+    const sum=r.reduce((a,m)=>a+nat[m],0),sc=r.length===per?(W-10-MR_HDR)/sum:1;
+    let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Notenbalk met ritme">`;
+    for(let k=0;k<5;k++)s+=`<line class="sl" x1="4" x2="${W-6}" y1="${TOP+k*G}" y2="${TOP+k*G}"/>`;
+    s+=`<line class="bar" x1="4" x2="4" y1="${TOP}" y2="${YB}"/>`;
+    s+=`<path class="clef" d="${CLEF}" transform="translate(6 ${yOf(2)}) scale(${G/250} ${-G/250}) translate(0 -250)"/>`;
+    if(ri===0)s+=`<text class="tsig" x="${LEFT+8}" y="${TOP+G}">4</text><text class="tsig" x="${LEFT+8}" y="${TOP+3*G}">4</text>`;
+    let x=MR_HDR;
+    for(const m of r){const mw=nat[m]*sc,ns=meas[m];let cx=x+12*sc;const xs=[];
+      ns.forEach(n=>{xs.push(cx+wOf(n.d)*sc*.28);cx+=wOf(n.d)*sc});
+      const beamed=new Set();
+      ns.forEach((n,j)=>{const nx=ns[j+1];
+        if(n.d===1&&n.lp%2===0&&nx&&nx.d===1&&nx.lp===n.lp+1&&!beamed.has(j)){
+          beamed.add(j);beamed.add(j+1);const p1=n.i-2,p2=nx.i-2,up=(p1+p2)/2<4;
+          const by=up?Math.min(yOf(p1),yOf(p2))-3.3*G:Math.max(yOf(p1),yOf(p2))+3.3*G;
+          const rx=G*.66,sx1=up?xs[j]+rx-.8:xs[j]-rx+.8,sx2=up?xs[j+1]+rx-.8:xs[j+1]-rx+.8,t=up?0:-5;
+          const same=n.cls===nx.cls?n.cls||'':'';
+          s+=`<g class="rn ${same}"><rect class="rh" x="${sx1-.7}" y="${by+t}" width="${sx2-sx1+1.4}" height="5"/></g>`;
+          n._beam={up,by};nx._beam={up,by}}});
+      ns.forEach((n,j)=>{const b=n._beam;
+        s+=`<g class="rn ${n.cls||''}" data-k="${n.k}">`+glyph(xs[j],n.i-2,n.d,b?{up:b.up,stemTo:b.by,flag:false}:{})+
+          (labels?`<text class="lab" x="${xs[j]}" y="${YB+G*2.9}">${n.label??NOTES[n.i].s}</text>`:'')+`</g>`});
+      if(cursor&&m===curM){const used=ns.reduce((a,n)=>a+n.d,0);const ex=ns.length?cx+2:x+12*sc;
+        s+=`<line class="cur" x1="${ex}" x2="${ex}" y1="${TOP-10}" y2="${YB+10}"/>`;
+        if(used===0)s+=`<text class="lab" x="${x+mw/2}" y="${YB+G*2.9}">maat ${m+1}</text>`}
+      x+=mw;
+      s+=m===bars-1?`<line class="bar" x1="${x-5}" x2="${x-5}" y1="${TOP}" y2="${YB}"/><line class="bar" x1="${x-1}" x2="${x-1}" y1="${TOP}" y2="${YB}" stroke-width="3.5"/>`
+                   :`<line class="bar" x1="${x}" x2="${x}" y1="${TOP}" y2="${YB}"/>`}
+    html+=s+'</svg>'});
+  return html}
+function durIcon(d){const p=d>=8?2:1;let s=glyph(14,p,d,{up:true});return `<svg viewBox="0 ${TOP-10} 34 ${4*G+18}" width="26" height="40" aria-hidden="true"><g class="rn">${s}</g></svg>`}
+
+let mr={sol:[],ans:[],checked:false,dur:2,done:0,perfect:0};
+$('mrDurs').innerHTML=DUR.map(x=>`<button class="dur" role="radio" data-d="${x.d}" aria-checked="${x.d===2}" title="${x.n}">${durIcon(x.d)}<span>${x.n}</span></button>`).join('');
+$('mrDurs').addEventListener('click',e=>{const b=e.target.closest('.dur');if(!b)return;mr.dur=+b.dataset.d;
+  $('mrDurs').querySelectorAll('.dur').forEach(x=>x.setAttribute('aria-checked',x===b))});
+const mrTotal=()=>+$('mrBars').value*8;
+const mrUsed=()=>mr.ans.reduce((a,n)=>a+n.d,0);
+function drawMr(){const cw=$('mrStaff').clientWidth||700;const bars=mr.sol.length?mr.bars:+$('mrBars').value;
+  let notes=mr.ans.map(n=>({...n}));
+  if(mr.checked){notes=notes.map((n,k)=>{const s=mr.sol[k];const pi=s&&n.i===s.i,rh=s&&n.d===s.d;
+    return{...n,cls:pi&&rh?'ok':pi||rh?'warn':'bad',label:pi?NOTES[n.i].s:'✕ '+NOTES[n.i].s}})}
+  $('mrStaff').innerHTML=rhythmHTML(notes,bars,{cursor:!mr.checked&&mr.sol.length>0,cw});
+  $('mrSolWrap').hidden=!mr.checked;
+  if(mr.checked)$('mrSol').innerHTML=rhythmHTML(mr.sol.map((n,k)=>({...n,cls:k===0?'given':''})),bars,{cw});
+  const full=mr.sol.length&&mrUsed()===mr.bars*8;
+  $('mrUndo').disabled=mr.checked||!mr.ans.length;$('mrClear').disabled=mr.checked||!mr.ans.length;$('mrCheck').disabled=mr.checked||!full;$('mrMine').disabled=!mr.ans.length}
+drawMr();
+async function mrAdd(i){if(!mr.sol.length||mr.checked){playOne(i);return}
+  const used=mrUsed(),d=mr.dur;
+  if(used>=mr.bars*8){mrMsg('Het dictee is vol. Klik op Controleer of wis een noot.');return}
+  if(used%8+d>8){mrMsg(`Een ${DUR.find(x=>x.d===d).n} past niet meer in maat ${Math.floor(used/8)+1}. Kies een kortere notenwaarde.`);return}
+  mr.ans.push({i,d});mrMsg('');drawMr();
+  if($('dcEcho').checked){await audio();stopAll();note(i,0,Math.min(1.4,d*mrE()))}}
+function mrMsg(t){$('mrFb').textContent=t;$('mrFb').className='feedback'+(t?' bad':'')}
+const mrE=()=>30/+$('mrTempo').value;
+function click(at,accent,vol=1){const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=accent?1600:1100;o.type='sine';
+  const t=ctx.currentTime+at;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(.35*vol,t+.004);g.gain.exponentialRampToValueAtTime(0.0001,t+.06);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+.08);active.add(o);o.onended=()=>active.delete(o)}
+async function mrPlayNotes(notes,{countIn=true,metro=$('mrClick').checked}={}){await audio();stopAll();
+  const e=mrE(),q=2*e;let t=.1;
+  if(countIn){for(let k=0;k<4;k++)click(t+k*q,k===0);t+=4*q}
+  const total=notes.reduce((a,n)=>a+n.d,0);
+  if(metro)for(let b=0;b*2<total;b++)click(t+b*q,b%4===0,.45);
+  notes.forEach((n,k)=>{note(n.i,t,k===notes.length-1?Math.max(n.d*e,1.2):n.d*e*.95);t+=n.d*e})}
+$('mrNew').onclick=()=>{const bars=+$('mrBars').value;const r=genRhythm(bars);const mel=genMelody(r.length,{startDo:true,endDo:$('mrEnd').checked,prime:true});
+  mr.sol=r.map((d,k)=>({i:mel[k],d}));mr.bars=bars;mr.ans=[];mr.checked=false;
+  $('mrCallout').innerHTML=`<span>Eerste noot:</span><span class="big">${NOTES[mr.sol[0].i].s}</span><span class="score">(${NOTES[mr.sol[0].i].l}) · ${bars} maten in 4/4 · eerst 4 tikken aftellen</span>`;
+  mrMsg('');$('mrPlay').disabled=false;drawMr();mrPlayNotes(mr.sol)};
+$('mrPlay').onclick=()=>mrPlayNotes(mr.sol);
+$('mrMine').onclick=()=>mrPlayNotes(mr.ans,{countIn:false,metro:false});
+$('mrUndo').onclick=()=>{mr.ans.pop();mrMsg('');drawMr()};
+$('mrClear').onclick=()=>{mr.ans=[];mrMsg('');drawMr()};
+$('mrCheck').onclick=()=>{mr.checked=true;const n=mr.sol.length;let pi=0,rh=0,both=0;
+  mr.sol.forEach((s,k)=>{const a=mr.ans[k];if(!a)return;if(a.i===s.i)pi++;if(a.d===s.d)rh++;if(a.i===s.i&&a.d===s.d)both++});
+  const perfect=both===n&&mr.ans.length===n;mr.done++;if(perfect)mr.perfect++;
+  $('mrFb').textContent=perfect?`Foutloos: alle ${n} noten juist, toonhoogte én ritme.`:
+    `Toonhoogte ${pi} van ${n} juist · ritme ${rh} van ${n} juist. Groen is helemaal juist, oranje is half juist (toonhoogte of ritme), rood is fout. Vergelijk met de oplossing hieronder.`;
+  $('mrFb').className='feedback '+(perfect?'ok':'bad');$('mrScore').textContent=`${mr.done} dictee${mr.done>1?'s':''} · ${mr.perfect} foutloos`;drawMr()};
+$('mrStaff').addEventListener('click',e=>{const svg=e.target.closest('svg');if(!svg||!mr.sol.length||mr.checked)return;
+  const p=svgPoint(svg,e);mrAdd(Math.max(0,Math.min(7,Math.round((YB-p.y)/(G/2))+2)))});
+keyRow($('mrKeys'),i=>mrAdd(i));
+$('mrTempo').oninput=e=>{$('mrTempoV').textContent=e.target.value+' bpm';store.set('mrTempo',e.target.value)};
+$('mrTempo').value=store.get('mrTempo','72');$('mrTempoV').textContent=$('mrTempo').value+' bpm';
+['mrBars'].forEach(id=>{$(id).value=store.get(id,$(id).value);$(id).onchange=()=>{store.set(id,$(id).value);if(!mr.sol.length)drawMr()}});
+['mrClick','mrEnd'].forEach(id=>{$(id).checked=store.get(id,$(id).checked);$(id).onchange=()=>store.set(id,$(id).checked)});
+
 addEventListener('keydown',e=>{if(e.target.matches('input,select,textarea'))return;
   const t=store.get('tab','noten');if(t==='dictee'&&/^[1-8]$/.test(e.key))place(+e.key-1);
-  if(t==='dictee'&&e.key==='Backspace'){e.preventDefault();$('dcUndo').click()}});
+  if(t==='dictee'&&e.key==='Backspace'){e.preventDefault();$('dcUndo').click()}
+  if(t==='meloritme'&&/^[1-8]$/.test(e.key))mrAdd(+e.key-1);
+  if(t==='meloritme'&&e.key==='Backspace'){e.preventDefault();$('mrUndo').click()}});
 showTab(/^#\w+$/.test(location.hash)?location.hash.slice(1):store.get('tab','noten'));
 </script>
 
