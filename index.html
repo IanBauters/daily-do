@@ -391,12 +391,16 @@ const rnd=n=>Math.floor(Math.random()*n);
 const pick=a=>a[rnd(a.length)];
 
 /* ---------- audio ---------- */
-let ctx,master,BUF=[],loading;
+let ctx,master,BUF=[],loading;const LA=0.03;
 function decode(b64){const bin=atob(b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new Promise((res,rej)=>ctx.decodeAudioData(u.buffer,res,rej))}
 function audio(){
   if(!loading){
-    ctx=new (window.AudioContext||window.webkitAudioContext)();
-    master=ctx.createGain();master.gain.value=0.9;master.connect(ctx.destination);
+    const AC=window.AudioContext||window.webkitAudioContext;
+    try{ctx=new AC({latencyHint:'playback'})}catch(e){ctx=new AC()}
+    /* master -> limiter -> speakers, so overlapping notes never clip */
+    master=ctx.createGain();master.gain.value=0.8;
+    const lim=ctx.createDynamicsCompressor();lim.threshold.value=-6;lim.knee.value=4;lim.ratio.value=20;lim.attack.value=0.002;lim.release.value=0.2;
+    master.connect(lim);lim.connect(ctx.destination);
     loading=Promise.all(FILES.map(f=>decode(AUDIO[f]))).then(b=>{BUF=b});
   }
   if(ctx.state==='suspended')ctx.resume();
@@ -405,13 +409,17 @@ function audio(){
 const active=new Set();let timers=[];let run=0;
 function src(buf,at,dur,vol=1){
   const s=ctx.createBufferSource();s.buffer=buf;const g=ctx.createGain();s.connect(g);g.connect(master);
-  const t=ctx.currentTime+at;g.gain.setValueAtTime(vol,t);
+  const t=ctx.currentTime+LA+at;g.gain.setValueAtTime(vol,t);
   if(dur){g.gain.setValueAtTime(vol,t+dur);g.gain.linearRampToValueAtTime(0.0001,t+dur+0.14);s.start(t);s.stop(t+dur+0.16)}else s.start(t);
-  active.add(s);s.onended=()=>active.delete(s);return s;
+  const a={s,g};active.add(a);s.onended=()=>active.delete(a);return s;
 }
+/* fade out instead of a hard cut, a hard stop() is what makes the click */
+function fadeStop(a){const now=ctx.currentTime,p=a.g.gain;
+  try{if(p.cancelAndHoldAtTime)p.cancelAndHoldAtTime(now);else{const v=p.value;p.cancelScheduledValues(now);p.setValueAtTime(v,now)}
+    p.linearRampToValueAtTime(0.0001,now+0.03);a.s.stop(now+0.04)}catch(e){try{a.s.stop()}catch(_){}}}
 const note=(i,at=0,dur=1.9,vol=1)=>src(BUF[i],at,dur,vol);
 function later(fn,sec){timers.push(setTimeout(fn,sec*1000))}
-function stopAll(){run++;for(const s of active){try{s.stop()}catch(e){}}active.clear();timers.forEach(clearTimeout);timers=[];document.querySelectorAll('.key.lit').forEach(k=>k.classList.remove('lit'));if(typeof setPlayIcon==='function')setPlayIcon(false)}
+function stopAll(){run++;if(ctx)for(const a of active)fadeStop(a);active.clear();timers.forEach(clearTimeout);timers=[];document.querySelectorAll('.key.lit').forEach(k=>k.classList.remove('lit'));if(typeof setPlayIcon==='function')setPlayIcon(false)}
 const sleep=s=>new Promise(r=>timers.push(setTimeout(r,s*1000)));
 /* announce + play the first note, the heart of every exercise */
 async function announceFirst(i,id,prefix='De eerste noot is'){
@@ -497,9 +505,12 @@ function drawDD(lit){ddLit=lit;const cw=$('ddStaff').clientWidth||700;const sw=3
       items:part.map((i,k)=>({slot:k,k:r*per+k,i,cls:'play'+(r*per+k===lit?' now':'')}))})}
   $('ddStaff').innerHTML=html;$('ddPos').textContent=lit>=0?`noot ${lit+1} van ${DD.length}`:`${DD.length} noten`}
 $('ddStaff').addEventListener('click',e=>{const g=e.target.closest('g.n');if(g)playOne(+g.dataset.i).then(()=>{drawDD(+g.dataset.k);later(()=>drawDD(-1),1.6)})});
-function followAlong(onsets,total,offset=0,onT,onEnd){const id=run,t0=ctx.currentTime-offset;let last=-2;
+function highlightDD(k){const el=$('ddStaff');const old=el.querySelector('g.n.now');if(old)old.classList.remove('now');
+  const g=k>=0?el.querySelector(`g.n[data-k="${k}"]`):null;if(g)g.classList.add('now');else if(k>=0){drawDD(k);return}
+  ddLit=k;$('ddPos').textContent=k>=0?`noot ${k+1} van ${DD.length}`:`${DD.length} noten`}
+function followAlong(onsets,total,offset=0,onT,onEnd){const id=run,t0=ctx.currentTime+LA-offset;let last=-2;
   (function tick(){if(id!==run)return;const t=ctx.currentTime-t0;let k=-1;for(let j=0;j<onsets.length;j++)if(t>=onsets[j])k=j;
-    if(onT)onT(t,k);if(t>total){drawDD(-1);if(onEnd)onEnd();return}if(k!==last){last=k;drawDD(k)}requestAnimationFrame(tick)})()}
+    if(onT)onT(t,k);if(t>total){highlightDD(-1);if(onEnd)onEnd();return}if(k!==last){last=k;highlightDD(k)}requestAnimationFrame(tick)})()}
 const fmt=s=>{s=Math.max(0,s);return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0')};
 let ddK=0,ddPlaying=false,ddCur=-1,waveLast=-2;
 const beat=()=>60/+$('ddTempo').value;
@@ -554,7 +565,7 @@ function newPair(){
   if(!opts.length)return null;let p;let tries=0;do p=pick(opts);while(tries++<8&&p[0]===iv.a&&p[1]===iv.b);return p}
 async function ivPlay(harm){await audio();stopAll();const id=run;
   if(!await announceFirst(iv.a,id))return;
-  if(harm||$('ivMode').value==='harm'){note(iv.a,0,2,.8);note(iv.b,0,2,.8)}else note(iv.b,0,1.9)}
+  if(harm||$('ivMode').value==='harm'){note(iv.a,0,2,.6);note(iv.b,0,2,.6)}else note(iv.b,0,1.9)}
 $('ivNew').onclick=()=>{const p=newPair();if(!p){$('ivFb').textContent='Geen intervallen mogelijk met deze instellingen. Vink meer intervallen aan.';$('ivFb').className='feedback bad';return}
   [iv.a,iv.b]=p;iv.answered=false;iv.res='';drawIv(false);
   $('ivCallout').innerHTML=`<span>Eerste noot:</span><span class="big">${NOTES[iv.a].s}</span><span class="score">(${NOTES[iv.a].l}) · daarna volgt de tweede noot</span>`;
@@ -753,8 +764,8 @@ async function mrAdd(i){if(!mr.sol.length||mr.checked){playOne(i);return}
 function mrMsg(t){$('mrFb').textContent=t;$('mrFb').className='feedback'+(t?' bad':'')}
 const mrE=()=>30/+$('mrTempo').value;
 function click(at,accent,vol=1){const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=accent?1600:1100;o.type='sine';
-  const t=ctx.currentTime+at;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(.35*vol,t+.004);g.gain.exponentialRampToValueAtTime(0.0001,t+.06);
-  o.connect(g);g.connect(master);o.start(t);o.stop(t+.08);active.add(o);o.onended=()=>active.delete(o)}
+  const t=ctx.currentTime+LA+at;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(.35*vol,t+.004);g.gain.exponentialRampToValueAtTime(0.0001,t+.06);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+.08);const a={s:o,g};active.add(a);o.onended=()=>active.delete(a)}
 async function mrPlayNotes(notes,{countIn=true,metro=$('mrClick').checked}={}){await audio();stopAll();
   const e=mrE(),q=2*e;let t=.1;
   if(countIn){for(let k=0;k<4;k++)click(t+k*q,k===0);t+=4*q}
